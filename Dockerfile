@@ -112,14 +112,14 @@ RUN mkdir /mac-osx \
  && chown -R magento2:magento2 .
 
 # Initial scripts
-COPY scripts/ /home/magento2/scripts/
-RUN sed -i 's/^/;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    && cd /home/magento2/scripts && composer install && chmod +x /home/magento2/scripts/m2init \
-    && sed -i 's/^;;*//' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+#COPY scripts/ /home/magento2/scripts/
+#RUN sed -i 's/^/;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+#    && cd /home/magento2/scripts && composer install && chmod +x /home/magento2/scripts/m2init \
+#   && sed -i 's/^;;*//' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
-RUN chown -R magento2:magento2 /home/magento2 && \
-    chown -R magento2:magento2 /var/www/magento2 && \
-    chmod 755 /home/magento2/scripts/bin/magento-cloud-login
+#RUN chown -R magento2:magento2 /home/magento2 && \
+#    chown -R magento2:magento2 /var/www/magento2 && \
+#    chmod 755 /home/magento2/scripts/bin/magento-cloud-login
 
 # Delete user password to connect with ssh with empty password
 RUN passwd magento2 -d
