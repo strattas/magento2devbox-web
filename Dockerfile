@@ -2,7 +2,7 @@ FROM php:7.0.16-fpm
 
 MAINTAINER "Magento"
 
-ENV PHP_EXTRA_CONFIGURE_ARGS="--enable-fpm --with-fpm-user=magento2 --with-fpm-group=magento2"
+ENV PHP_EXTRA_CONFIGURE_ARGS="--enable-fpm --with-fpm-user=root --with-fpm-group=root"
 
 RUN apt-get update && apt-get install -y \
     apt-utils \
@@ -33,6 +33,7 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-configure hash --with-mhash \
     && docker-php-ext-install -j$(nproc) mcrypt intl xsl gd zip pdo_mysql opcache soap bcmath json iconv \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
     && pecl install xdebug && docker-php-ext-enable xdebug \
     && echo "xdebug.remote_enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && echo "xdebug.remote_port=9000" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
@@ -52,8 +53,8 @@ RUN apt-get update && apt-get install -y \
     && a2enmod proxy \
     && a2enmod proxy_fcgi \
     && rm -f /etc/apache2/sites-enabled/000-default.conf \
-    && useradd -m -d /home/magento2 -s /bin/bash magento2 && adduser magento2 sudo \
-    && echo "magento2 ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
+    && useradd -m -d /home/magento2 -s /bin/bash root && adduser root sudo \
+    && echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
     && touch /etc/sudoers.d/privacy \
     && echo "Defaults        lecture = never" >> /etc/sudoers.d/privacy \
     && mkdir /home/magento2/magento2 && mkdir /var/www/magento2 \
@@ -67,7 +68,7 @@ ADD conf/php.ini /usr/local/etc/php
 
 # SSH config
 COPY conf/sshd_config /etc/ssh/sshd_config
-RUN chown magento2:magento2 /etc/ssh/ssh_config
+RUN chown root:root /etc/ssh/ssh_config
 
 # supervisord config
 ADD conf/supervisord.conf /etc/supervisord.conf
@@ -102,27 +103,27 @@ RUN mkdir /windows \
  && rm unison-windows.zip \
  && mv 'unison 2.48.3 text.exe' unison.exe \
  && rm 'unison 2.48.3 GTK.exe' \
- && chown -R magento2:magento2 .
+ && chown -R root:root .
 
 RUN mkdir /mac-osx \
  && cd /mac-osx \
  && curl -L -o unison-mac-osx.zip http://unison-binaries.inria.fr/files/Unison-OS-X-2.48.15.zip \
  && unzip unison-mac-osx.zip \
  && rm unison-mac-osx.zip \
- && chown -R magento2:magento2 .
+ && chown -R root:root .
 
 # Initial scripts
-#COPY scripts/ /home/magento2/scripts/
-#RUN sed -i 's/^/;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-#    && cd /home/magento2/scripts && composer install && chmod +x /home/magento2/scripts/m2init \
-#   && sed -i 's/^;;*//' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+COPY scripts/ /home/magento2/scripts/
+RUN sed -i 's/^/;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+   && cd /home/magento2/scripts && composer install && chmod +x /home/magento2/scripts/m2init \
+   && sed -i 's/^;;*//' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
-#RUN chown -R magento2:magento2 /home/magento2 && \
-#    chown -R magento2:magento2 /var/www/magento2 && \
-#    chmod 755 /home/magento2/scripts/bin/magento-cloud-login
+RUN chown -R root:root /home/magento2 && \
+    chown -R root:root /var/www/magento2 && \
+    chmod 755 /home/magento2/scripts/bin/magento-cloud-login
 
 # Delete user password to connect with ssh with empty password
-RUN passwd magento2 -d
+RUN passwd root -d
 
 EXPOSE 80 22 5000 44100
 WORKDIR /home/magento2
